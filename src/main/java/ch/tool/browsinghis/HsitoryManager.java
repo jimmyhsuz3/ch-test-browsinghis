@@ -197,6 +197,7 @@ public class HsitoryManager {
     	}
 	}
 	private String fixLen(Object obj, int len){
+		if (obj == null) obj = "";
 		StringBuilder builder = new StringBuilder(obj.toString());
 		while (builder.length() < len)
 			builder.insert(0, " ");
