@@ -4,7 +4,6 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import ch.tool.browsinghis.dao.HistoryDao;
+import ch.tool.browsinghis.model.Sequence;
 import ch.tool.browsinghis.model.Url;
 import ch.tool.browsinghis.model.UrlVisit;
 import ch.tool.browsinghis.model.Visit;
@@ -93,7 +93,9 @@ public class HsitoryManager {
 		Set<String> filePathSet = new TreeSet<String>();
         for (File file : new File(folderPath).listFiles())
         	filePathSet.add(file.getAbsolutePath());
+        int n = 0;
         for (String filePath : filePathSet){
+        	System.out.print((++n < 10 ? "0" : "") + n + ": ");
         	System.out.print(filePath);
         	HistoryDao history = new HistoryDao(filePath);
         	checkVisits(history.getVisits());
@@ -117,7 +119,7 @@ public class HsitoryManager {
         		throw new RuntimeException("");
         	else if (allUrlMap.get(id).size() > 1)
         		resultUrlMap.put(id, allUrlMap.get(id));
-        List<Set<Url>> resultUrlList = new ArrayList<Set<Url>>(resultUrlMap.values());
+        List<Set<Url>> resultUrlList = new java.util.ArrayList<Set<Url>>(resultUrlMap.values());
         Collections.sort(resultUrlList, new Comparator<Set<Url>>() {
 			public int compare(Set<Url> set1, Set<Url> set2) {
 				return set1.iterator().next().getId() - set2.iterator().next().getId() < 0 ? -1 : 1;
@@ -133,9 +135,9 @@ public class HsitoryManager {
         		System.err.println(print);
         	while (iter.hasNext()){
         		Url temp = iter.next();
-        		if (!temp.getLastVisitTime().after(url.getLastVisitTime()))
+        		if (temp.getLastVisitTime().before(url.getLastVisitTime()))
         			throw new RuntimeException("ascending");
-        		if (temp.getVisitCount() <= url.getVisitCount())
+        		if (temp.getVisitCount() < url.getVisitCount())
         			throw new RuntimeException("ascending");
         		url = temp;
         	}
@@ -164,5 +166,41 @@ public class HsitoryManager {
 			throw new RuntimeException(e);
 		}
 		return list;
+	}
+	public void checkSequence(String folderPath, String url, int before, int after){
+		List<File> fileList = java.util.Arrays.asList(new File(folderPath).listFiles());
+		Collections.sort(fileList, new java.util.Comparator<File>(){
+			public int compare(File f1, File f2) {
+				long last1 = f1.lastModified();
+				long last2 = f2.lastModified();
+				return last1 == last2 ? 0 : last1 < last2 ? 1 : -1;
+			}
+		});
+		System.out.println(fileList.get(0) + "\n");
+		for (Sequence seq : HistoryDao.querySequence(fileList.get(0).getAbsolutePath(), url, before, after)){
+			if (seq != null){
+				String strUrlDate = new java.text.SimpleDateFormat(HistoryDao.DATE_FORMAT).format(seq.getUrlDate());
+				String strUrlId = fixLen(seq.getUrlId(), 5);
+				String strFromUrlId = fixLen(seq.getFromUrlId(), 5);
+				String print = String.format("%s, %s, %s, %s, %s, %s", strUrlDate, strUrlId, strFromUrlId, seq.getTitle(), seq.getFromTitle(), seq.getUrl());
+				if (seq.getUrl().equals(url) || seq.getTitle().indexOf(url) > -1)
+					System.err.println(print);
+				else
+					System.out.println(print);
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			} else
+				System.out.println();
+    	}
+	}
+	private String fixLen(Object obj, int len){
+		StringBuilder builder = new StringBuilder(obj.toString());
+		while (builder.length() < len)
+			builder.insert(0, " ");
+		builder.setLength(len);
+		return builder.toString();
 	}
 }
