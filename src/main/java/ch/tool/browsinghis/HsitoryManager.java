@@ -167,7 +167,7 @@ public class HsitoryManager {
 		}
 		return list;
 	}
-	public void checkSequence(String folderPath, String url, int before, int after){
+	public void checkSequence(String folderPath, String[] finds, int before, int after){
 		List<File> fileList = java.util.Arrays.asList(new File(folderPath).listFiles());
 		Collections.sort(fileList, new java.util.Comparator<File>(){
 			public int compare(File f1, File f2) {
@@ -177,13 +177,16 @@ public class HsitoryManager {
 			}
 		});
 		System.out.println(fileList.get(0) + "\n");
-		for (Sequence seq : HistoryDao.querySequence(fileList.get(0).getAbsolutePath(), url, before, after)){
+		for (Sequence seq : HistoryDao.querySequence(fileList.get(0).getAbsolutePath(), finds, before, after)){
 			if (seq != null){
 				String strUrlDate = new java.text.SimpleDateFormat(HistoryDao.DATE_FORMAT).format(seq.getUrlDate());
 				String strUrlId = fixLen(seq.getUrlId(), 5);
 				String strFromUrlId = fixLen(seq.getFromUrlId(), 5);
 				String print = String.format("%s, %s, %s, %s, %s, %s", strUrlDate, strUrlId, strFromUrlId, seq.getTitle(), seq.getFromTitle(), seq.getUrl());
+/*
 				if (seq.getUrl().equals(url) || seq.getTitle().indexOf(url) > -1)
+*/
+				if (HistoryDao.match(finds, seq.getUrl(), seq.getTitle()))
 					System.err.println(print);
 				else
 					System.out.println(print);

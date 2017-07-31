@@ -134,7 +134,7 @@ public class HistoryDao {
 	public Map<Long, UrlVisit> getUrlVisitMap() {
 		return urlVisitMap;
 	}
-	public static List<Sequence> querySequence(String filePath, String url, int before, int after){
+	public static List<Sequence> querySequence(String filePath, String[] finds, int before, int after){
 		List<Sequence> seqs = new ArrayList<Sequence>();
 		Connection conn = null;
         try {
@@ -170,7 +170,10 @@ public class HistoryDao {
 					if (len == 0 && temp.size() > before)
 						temp.remove(0);
 					temp.add(seq);
+/*
 					if (seq.getUrl().equals(url) || seq.getTitle().indexOf(url) > -1)
+*/
+					if (match(finds, seq.getUrl(), seq.getTitle()))
 						len = temp.size() + after;
 					if (len == temp.size()){
 						seqs.addAll(temp);
@@ -196,5 +199,11 @@ public class HistoryDao {
 				}
 		}
         return seqs;
+	}
+	public static boolean match(String[] finds, String url, String title){
+		for (String find : finds)
+			if (url.equals(find) || title.indexOf(find) > -1)
+				return true;
+		return false;
 	}
 }
