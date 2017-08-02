@@ -182,7 +182,8 @@ public class HsitoryManager {
 				String strUrlDate = new java.text.SimpleDateFormat(HistoryDao.DATE_FORMAT).format(seq.getUrlDate());
 				String strUrlId = fixLen(seq.getUrlId(), 5);
 				String strFromUrlId = fixLen(seq.getFromUrlId(), 5);
-				String print = String.format("%s, %s, %s, %s, %s, %s", strUrlDate, strUrlId, strFromUrlId, seq.getTitle(), seq.getFromTitle(), seq.getUrl());
+				String strVisitId = fixLen(seq.getVisitId(), 5);
+				String print = String.format("%s(%s), %s, %s, %s, %s, %s", strUrlDate, strVisitId, strUrlId, strFromUrlId, seq.getTitle(), seq.getFromTitle(), seq.getUrl());
 /*
 				if (seq.getUrl().equals(url) || seq.getTitle().indexOf(url) > -1)
 */
